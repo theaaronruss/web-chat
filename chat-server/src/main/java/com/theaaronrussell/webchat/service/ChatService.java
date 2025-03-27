@@ -44,7 +44,10 @@ public class ChatService {
    * @param sessionId ID of the {@code WebSocketSession} to stop tracking.
    */
   public void disconnectClient(String sessionId) {
+    String disconnectingUsername = clients.get(sessionId).getUsername();
     clients.remove(sessionId);
+    ChatEvent outgoingEvent = new ChatEvent(EventName.DISCONNECT, disconnectingUsername, null);
+    broadcastEvent(outgoingEvent);
   }
 
   /**
@@ -101,7 +104,12 @@ public class ChatService {
     try {
       String eventJson = objectMapper.writeValueAsString(event);
       for (Map.Entry<String, ChatClient> recipient : clients.entrySet()) {
-        recipient.getValue().getSession().sendMessage(new TextMessage(eventJson));
+        WebSocketSession recipientSession = recipient.getValue().getSession();
+        if (!recipientSession.isOpen()) {
+          log.debug("Not sending message to closed session");
+          continue;
+        }
+        recipientSession.sendMessage(new TextMessage(eventJson));
       }
     } catch (JsonProcessingException e) {
       log.error("Failed to convert outgoing event to JSON");
