@@ -3,15 +3,15 @@ package com.theaaronrussell.webchat.dto;
 public class ChatEvent {
 
   private String eventName;
-  private String author;
+  private String user;
   private String content;
 
   public ChatEvent() {
   }
 
-  public ChatEvent(String eventName, String author, String content) {
+  public ChatEvent(String eventName, String user, String content) {
     this.eventName = eventName;
-    this.author = author;
+    this.user = user;
     this.content = content;
   }
 
@@ -23,12 +23,12 @@ public class ChatEvent {
     this.eventName = eventName;
   }
 
-  public String getAuthor() {
-    return author;
+  public String getUser() {
+    return user;
   }
 
-  public void setAuthor(String author) {
-    this.author = author;
+  public void setUser(String user) {
+    this.user = user;
   }
 
   public String getContent() {
