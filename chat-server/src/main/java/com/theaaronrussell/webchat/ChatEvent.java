@@ -1,6 +1,4 @@
-package com.theaaronrussell.webchat.dto;
-
-import com.theaaronrussell.webchat.util.EventName;
+package com.theaaronrussell.webchat;
 
 public class ChatEvent {
 

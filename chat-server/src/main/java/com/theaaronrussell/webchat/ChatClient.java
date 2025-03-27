@@ -1,4 +1,4 @@
-package com.theaaronrussell.webchat.dto;
+package com.theaaronrussell.webchat;
 
 import org.springframework.web.socket.WebSocketSession;
 

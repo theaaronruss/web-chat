@@ -1,4 +1,4 @@
-package com.theaaronrussell.webchat.util;
+package com.theaaronrussell.webchat;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
