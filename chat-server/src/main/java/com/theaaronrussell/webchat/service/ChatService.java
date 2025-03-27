@@ -13,6 +13,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -67,9 +68,8 @@ public class ChatService {
     } else {
       client.setUsername(event.getContent());
       log.info("User {} has logged in", newUsername);
-      clients.forEach((recipientSessionId, recipient) -> {
-        sendLogInEvent(recipientSessionId, newUsername);
-      });
+      ChatEvent outgoingEvent = new ChatEvent(EventName.LOG_IN, newUsername, null);
+      broadcastEvent(outgoingEvent);
     }
   }
 
@@ -79,7 +79,7 @@ public class ChatService {
    * @param sessionId ID of the session associated with the user sending the message.
    * @param event     Details of the message being sent.
    */
-  public void broadcastMessage(String sessionId, ChatEvent event) {
+  public void sendMessage(String sessionId, ChatEvent event) {
     ChatClient sender = clients.get(sessionId);
     String senderUsername = sender.getUsername();
     String message = event.getContent();
@@ -88,47 +88,25 @@ public class ChatService {
       return;
     }
     log.info("{} says \"{}\"", senderUsername, message);
-    clients.forEach((recipientSessionId, recipient) -> {
-      sendMessageEvent(recipientSessionId, senderUsername, message);
-    });
+    ChatEvent outgoingEvent = new ChatEvent(EventName.MESSAGE, senderUsername, message);
+    broadcastEvent(outgoingEvent);
   }
 
   /**
-   * Send a message event to a connected user.
+   * Broadcast an event to all connected clients.
    *
-   * @param recipientSessionId ID of the session associated with the recipient.
-   * @param senderUsername     Username of the user sending the messsage.
-   * @param message            Content of the message to send.
+   * @param event The event to broadcast.
    */
-  private void sendMessageEvent(String recipientSessionId, String senderUsername, String message) {
-    ChatEvent event = new ChatEvent(EventName.MESSAGE, senderUsername, message);
-    ChatClient recipient = clients.get(recipientSessionId);
+  private void broadcastEvent(ChatEvent event) {
     try {
       String eventJson = objectMapper.writeValueAsString(event);
-      recipient.getSession().sendMessage(new TextMessage(eventJson));
+      for (Map.Entry<String, ChatClient> recipient : clients.entrySet()) {
+        recipient.getValue().getSession().sendMessage(new TextMessage(eventJson));
+      }
     } catch (JsonProcessingException e) {
       log.error("Failed to convert outgoing event to JSON");
     } catch (IOException e) {
-      log.error("Failed to send message event to client with session ID {}", recipientSessionId);
-    }
-  }
-
-  /**
-   * Send a log in event to a connected user.
-   *
-   * @param recipientSessionId ID of the session associated with the recipient.
-   * @param loggedInUsername   Username of the user who logged in.
-   */
-  private void sendLogInEvent(String recipientSessionId, String loggedInUsername) {
-    ChatEvent event = new ChatEvent(EventName.LOG_IN, loggedInUsername, null);
-    ChatClient recipient = clients.get(recipientSessionId);
-    try {
-      String eventJson = objectMapper.writeValueAsString(event);
-      recipient.getSession().sendMessage(new TextMessage(eventJson));
-    } catch (JsonProcessingException e) {
-      log.error("Failed to convert outgoing event to JSON");
-    } catch (IOException e) {
-      log.error("Failed to send log in event to client with session ID {}", recipientSessionId);
+      log.error("Failed to send message event to client");
     }
   }
 

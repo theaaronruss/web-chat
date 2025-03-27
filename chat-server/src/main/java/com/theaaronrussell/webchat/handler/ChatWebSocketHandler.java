@@ -71,7 +71,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
       validateEventMessage(event);
       switch (event.getEventName()) {
         case EventName.LOG_IN -> chatService.logIn(session.getId(), event);
-        case EventName.MESSAGE -> chatService.broadcastMessage(session.getId(), event);
+        case EventName.MESSAGE -> chatService.sendMessage(session.getId(), event);
         default -> log.error("Unknown event name");
       }
     } catch (JsonProcessingException e) {
