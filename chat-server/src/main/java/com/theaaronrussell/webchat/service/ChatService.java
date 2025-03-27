@@ -107,9 +107,11 @@ public class ChatService {
         WebSocketSession recipientSession = recipient.getValue().getSession();
         if (!recipientSession.isOpen()) {
           log.debug("Not sending message to closed session");
-          continue;
+        } else if (recipient.getValue().getUsername() == null) {
+          log.debug("Not sending message to logged out user");
+        } else {
+          recipientSession.sendMessage(new TextMessage(eventJson));
         }
-        recipientSession.sendMessage(new TextMessage(eventJson));
       }
     } catch (JsonProcessingException e) {
       log.error("Failed to convert outgoing event to JSON");
