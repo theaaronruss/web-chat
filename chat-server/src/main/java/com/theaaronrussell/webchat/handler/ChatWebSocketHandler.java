@@ -19,6 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
   private static final Logger log = LoggerFactory.getLogger(ChatWebSocketHandler.class);
+  private static final String EVENT_LOG_IN = "login";
   private static final String EVENT_MESSAGE = "message";
   private final ChatService chatService;
   private final ObjectMapper objectMapper;
@@ -69,10 +70,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     try {
       ChatEvent event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
       validateEventMessage(event);
-      if (event.getEventName().equalsIgnoreCase(EVENT_MESSAGE)) {
-        chatService.sendMessage(session.getId(), event);
-      } else {
-        log.error("Unknown event name");
+      switch (event.getEventName()) {
+        case EVENT_LOG_IN -> chatService.logIn(session.getId(), event);
+        case EVENT_MESSAGE -> chatService.sendMessage(session.getId(), event);
+        default -> log.error("Unknown event name");
       }
     } catch (JsonProcessingException e) {
       log.error("Failed to parse incoming message");

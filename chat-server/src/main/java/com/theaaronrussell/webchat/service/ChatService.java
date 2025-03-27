@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatService {
 
   private static final Logger log = LoggerFactory.getLogger(ChatService.class);
+  private static final int USERNAME_MAX_LENGTH = 15;
   private final ConcurrentHashMap<String, ChatClient> clients = new ConcurrentHashMap<>();
 
   /**
@@ -31,6 +32,29 @@ public class ChatService {
    */
   public void disconnectClient(String sessionId) {
     clients.remove(sessionId);
+  }
+
+  /**
+   * "Log in" a user by setting their username.
+   *
+   * @param sessionId ID of the session associated with the user. Does nothing if user is already logged in, username
+   *                  is blank, or if the username is too long.
+   * @param event     Details related to the log in event.
+   */
+  public void logIn(String sessionId, ChatEvent event) {
+    ChatClient client = clients.get(sessionId);
+    String newUsername = event.getContent();
+    if (client.getUsername() != null) {
+      log.error("User is already logged in");
+    } else if (newUsername.isBlank()) {
+      log.error("Username cannot be blank");
+    } else if (newUsername.length() > USERNAME_MAX_LENGTH) {
+      log.error("Username cannot be longer than {} characters", USERNAME_MAX_LENGTH);
+    } else if (!newUsername.matches("^[a-zA-Z0-9]+$")) {
+      log.error("Username must only contain alphanumeric characters");
+    } else {
+      client.setUsername(event.getContent());
+    }
   }
 
   public void sendMessage(String sessionId, ChatEvent event) {
