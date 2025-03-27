@@ -9,11 +9,6 @@ public class ChatEvent {
   public ChatEvent() {
   }
 
-  public ChatEvent(String eventName, String content) {
-    this.eventName = eventName;
-    this.content = content;
-  }
-
   public ChatEvent(String eventName, String author, String content) {
     this.eventName = eventName;
     this.author = author;

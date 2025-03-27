@@ -67,6 +67,9 @@ public class ChatService {
     } else {
       client.setUsername(event.getContent());
       log.info("User {} has logged in", newUsername);
+      clients.forEach((recipientSessionId, recipient) -> {
+        sendLogInEvent(recipientSessionId, newUsername);
+      });
     }
   }
 
@@ -91,7 +94,7 @@ public class ChatService {
   }
 
   /**
-   * Send a message to a connected user.
+   * Send a message event to a connected user.
    *
    * @param recipientSessionId ID of the session associated with the recipient.
    * @param senderUsername     Username of the user sending the messsage.
@@ -106,7 +109,26 @@ public class ChatService {
     } catch (JsonProcessingException e) {
       log.error("Failed to convert outgoing event to JSON");
     } catch (IOException e) {
-      log.error("Failed to send message to client with ID {}", recipientSessionId);
+      log.error("Failed to send message event to client with session ID {}", recipientSessionId);
+    }
+  }
+
+  /**
+   * Send a log in event to a connected user.
+   *
+   * @param recipientSessionId ID of the session associated with the recipient.
+   * @param loggedInUsername   Username of the user who logged in.
+   */
+  private void sendLogInEvent(String recipientSessionId, String loggedInUsername) {
+    ChatEvent event = new ChatEvent(EventName.LOG_IN, loggedInUsername, null);
+    ChatClient recipient = clients.get(recipientSessionId);
+    try {
+      String eventJson = objectMapper.writeValueAsString(event);
+      recipient.getSession().sendMessage(new TextMessage(eventJson));
+    } catch (JsonProcessingException e) {
+      log.error("Failed to convert outgoing event to JSON");
+    } catch (IOException e) {
+      log.error("Failed to send log in event to client with session ID {}", recipientSessionId);
     }
   }
 
