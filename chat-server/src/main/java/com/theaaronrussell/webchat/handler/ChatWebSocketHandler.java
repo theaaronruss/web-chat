@@ -18,9 +18,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
-  private static final String EVENT_MESSAGE = "message";
   private static final Logger log = LoggerFactory.getLogger(ChatWebSocketHandler.class);
-
+  private static final String EVENT_MESSAGE = "message";
   private final ChatService chatService;
   private final ObjectMapper objectMapper;
 
@@ -31,9 +30,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
   }
 
   /**
-   * Handle new client connections.
+   * Handle new client connection.
    *
-   * @param session The {@code WebSocketSession} related to the client.
+   * @param session The {@code WebSocketSession} associated with the client.
    * @throws Exception If any exception occurs.
    */
   @Override
@@ -44,10 +43,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
   }
 
   /**
-   * Handle client disconnecting.
+   * Handle client disconnection.
    *
-   * @param session The {@code WebSocketSession} related to the client.
-   * @param status The status code and reason for client disconnect.
+   * @param session The {@code WebSocketSession} associated with the client.
+   * @param status The status code and reason for client disconnection.
    * @throws Exception If any exception occurs.
    */
   @Override
@@ -58,34 +57,30 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
   }
 
   /**
-   * Handle incoming event messages.
+   * Handle incoming messages.
    *
-   * @param session The {@code WebSocketSession} related to the incoming event message.
-   * @param message The event message to process.
+   * @param session The {@code WebSocketSession} related to the incoming message.
+   * @param message The message to process.
    * @throws Exception If any exception occurs.
    */
   @Override
   protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
     super.handleTextMessage(session, message);
-    ChatEvent event;
     try {
-      event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
+      ChatEvent event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
+      validateEventMessage(event);
+      if (event.getEventName().equalsIgnoreCase(EVENT_MESSAGE)) {
+          chatService.sendMessage(event);
+      }
     } catch (JsonProcessingException e) {
       log.error("Failed to parse incoming message");
-      return;
-    }
-    try {
-      validateEventMessage(event);
     } catch (ValidationException e) {
       log.error("Invalid event: {}", e.getMessage());
-      return;
     }
-    log.info("Incoming event with name \"{}\"", event.getEventName());
-    handleEvent(event);
   }
 
   /**
-   * Verify that the given event is valid.
+   * Verify that the given event is valid. An event is invalid if the event name is not provided or is blank.
    *
    * @param event The event to validate.
    * @throws ValidationException If event is not a valid event.
@@ -94,17 +89,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     String eventName = event.getEventName();
     if (eventName == null || eventName.isBlank()) {
       throw new ValidationException("Event name not provided or is blank");
-    }
-  }
-
-  private void handleEvent(ChatEvent event) {
-    switch (event.getEventName()) {
-      case EVENT_MESSAGE:
-        // TODO: Send message event to service layer
-        break;
-      default:
-        log.error("Unknown event name");
-        break;
     }
   }
 

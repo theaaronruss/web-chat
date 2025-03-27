@@ -1,6 +1,9 @@
 package com.theaaronrussell.webchat.service;
 
 import com.theaaronrussell.webchat.dto.ChatClient;
+import com.theaaronrussell.webchat.dto.ChatEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -9,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ChatService {
 
+  private static final Logger log = LoggerFactory.getLogger(ChatService.class);
   private final ConcurrentHashMap<String, ChatClient> clients = new ConcurrentHashMap<>();
 
   /**
@@ -27,6 +31,10 @@ public class ChatService {
    */
   public void disconnectClient(String sessionId) {
     clients.remove(sessionId);
+  }
+
+  public void sendMessage(ChatEvent event) {
+    // TODO: Broadcast message to all clients
   }
 
 }
