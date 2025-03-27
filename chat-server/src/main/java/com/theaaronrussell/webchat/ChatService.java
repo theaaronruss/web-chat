@@ -1,13 +1,11 @@
-package com.theaaronrussell.webchat.service;
+package com.theaaronrussell.webchat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.theaaronrussell.webchat.dto.ChatClient;
-import com.theaaronrussell.webchat.dto.ChatEvent;
-import com.theaaronrussell.webchat.util.EventName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -20,9 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatService {
 
   private static final Logger log = LoggerFactory.getLogger(ChatService.class);
-  private static final int USERNAME_MAX_LENGTH = 15;
   private final ConcurrentHashMap<String, ChatClient> clients = new ConcurrentHashMap<>();
   private final ObjectMapper objectMapper;
+
+  @Value("${username.max_length}")
+  private int usernameMaxLength;
 
   @Autowired
   public ChatService(ObjectMapper objectMapper) {
@@ -46,8 +46,10 @@ public class ChatService {
   public void disconnectClient(String sessionId) {
     String disconnectingUsername = clients.get(sessionId).getUsername();
     clients.remove(sessionId);
-    ChatEvent outgoingEvent = new ChatEvent(EventName.DISCONNECT, disconnectingUsername, null);
-    broadcastEvent(outgoingEvent);
+    if (disconnectingUsername != null) {
+      ChatEvent outgoingEvent = new ChatEvent(EventName.DISCONNECT, disconnectingUsername, null);
+      broadcastEvent(outgoingEvent);
+    }
   }
 
   /**
@@ -68,10 +70,10 @@ public class ChatService {
       log.error("Username cannot be blank");
       ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null, "Username cannot be blank");
       sendEvent(sessionId, errorEvent);
-    } else if (newUsername.length() > USERNAME_MAX_LENGTH) {
-      log.error("Username cannot be longer than {} characters", USERNAME_MAX_LENGTH);
+    } else if (newUsername.length() > usernameMaxLength) {
+      log.error("Username cannot be longer than {} characters", usernameMaxLength);
       ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null,
-          "Username cannot be longer than " + USERNAME_MAX_LENGTH + " characters");
+          "Username cannot be longer than " + usernameMaxLength + " characters");
       sendEvent(sessionId, errorEvent);
     } else if (!newUsername.matches("^[a-zA-Z0-9]+$")) {
       log.error("Username must only contain alphanumeric characters");

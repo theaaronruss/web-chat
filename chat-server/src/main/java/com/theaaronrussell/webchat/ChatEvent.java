@@ -1,25 +1,25 @@
-package com.theaaronrussell.webchat.dto;
+package com.theaaronrussell.webchat;
 
 public class ChatEvent {
 
-  private String eventName;
+  private EventName eventName;
   private String user;
   private String content;
 
   public ChatEvent() {
   }
 
-  public ChatEvent(String eventName, String user, String content) {
+  public ChatEvent(EventName eventName, String user, String content) {
     this.eventName = eventName;
     this.user = user;
     this.content = content;
   }
 
-  public String getEventName() {
+  public EventName getEventName() {
     return eventName;
   }
 
-  public void setEventName(String eventName) {
+  public void setEventName(EventName eventName) {
     this.eventName = eventName;
   }
 

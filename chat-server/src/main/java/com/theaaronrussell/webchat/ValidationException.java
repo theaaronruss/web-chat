@@ -1,4 +1,4 @@
-package com.theaaronrussell.webchat.exception;
+package com.theaaronrussell.webchat;
 
 public class ValidationException extends Exception {
 

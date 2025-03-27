@@ -1,6 +1,5 @@
-package com.theaaronrussell.webchat.config;
+package com.theaaronrussell.webchat;
 
-import com.theaaronrussell.webchat.handler.ChatWebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
