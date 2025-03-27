@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theaaronrussell.webchat.dto.ChatEvent;
 import com.theaaronrussell.webchat.exception.ValidationException;
 import com.theaaronrussell.webchat.service.ChatService;
+import com.theaaronrussell.webchat.util.EventName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +20,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
   private static final Logger log = LoggerFactory.getLogger(ChatWebSocketHandler.class);
-  private static final String EVENT_LOG_IN = "login";
-  private static final String EVENT_MESSAGE = "message";
   private final ChatService chatService;
   private final ObjectMapper objectMapper;
 
@@ -71,8 +70,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
       ChatEvent event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
       validateEventMessage(event);
       switch (event.getEventName()) {
-        case EVENT_LOG_IN -> chatService.logIn(session.getId(), event);
-        case EVENT_MESSAGE -> chatService.sendMessage(session.getId(), event);
+        case EventName.LOG_IN -> chatService.logIn(session.getId(), event);
+        case EventName.MESSAGE -> chatService.broadcastMessage(session.getId(), event);
         default -> log.error("Unknown event name");
       }
     } catch (JsonProcessingException e) {

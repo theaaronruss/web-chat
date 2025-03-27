@@ -1,12 +1,18 @@
 package com.theaaronrussell.webchat.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theaaronrussell.webchat.dto.ChatClient;
 import com.theaaronrussell.webchat.dto.ChatEvent;
+import com.theaaronrussell.webchat.util.EventName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -15,6 +21,12 @@ public class ChatService {
   private static final Logger log = LoggerFactory.getLogger(ChatService.class);
   private static final int USERNAME_MAX_LENGTH = 15;
   private final ConcurrentHashMap<String, ChatClient> clients = new ConcurrentHashMap<>();
+  private final ObjectMapper objectMapper;
+
+  @Autowired
+  public ChatService(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   /**
    * Start keeping track of new client.
@@ -54,6 +66,7 @@ public class ChatService {
       log.error("Username must only contain alphanumeric characters");
     } else {
       client.setUsername(event.getContent());
+      log.info("User {} has logged in", newUsername);
     }
   }
 
@@ -63,14 +76,38 @@ public class ChatService {
    * @param sessionId ID of the session associated with the user sending the message.
    * @param event     Details of the message being sent.
    */
-  public void sendMessage(String sessionId, ChatEvent event) {
-    ChatClient client = clients.get(sessionId);
-    if (client.getUsername() == null) {
+  public void broadcastMessage(String sessionId, ChatEvent event) {
+    ChatClient sender = clients.get(sessionId);
+    String senderUsername = sender.getUsername();
+    String message = event.getContent();
+    if (senderUsername == null) {
       log.error("User must log in before sending messages");
       return;
     }
-    log.info("{}: {}", client.getUsername(), event.getContent());
-    // TODO: Broadcast message to all clients
+    log.info("{}: {}", senderUsername, message);
+    String outgoingMessage = String.format("%s: %s", senderUsername, message);
+    clients.forEach((recipientSessionId, recipient) -> {
+      sendMessage(recipientSessionId, outgoingMessage);
+    });
+  }
+
+  /**
+   * Send a message to a connected user.
+   *
+   * @param recipientSessionId ID of the session associated with the recipient.
+   * @param message            Content of the message to send.
+   */
+  private void sendMessage(String recipientSessionId, String message) {
+    ChatEvent event = new ChatEvent(EventName.MESSAGE, message);
+    ChatClient recipient = clients.get(recipientSessionId);
+    try {
+      String eventJson = objectMapper.writeValueAsString(event);
+      recipient.getSession().sendMessage(new TextMessage(eventJson));
+    } catch (JsonProcessingException e) {
+      log.error("Failed to convert outgoing event to JSON");
+    } catch (IOException e) {
+      log.error("Failed to send message to client with ID {}", recipientSessionId);
+    }
   }
 
 }
