@@ -1,0 +1,2 @@
+spring.application.name: webchat
+username.max_length: 15
