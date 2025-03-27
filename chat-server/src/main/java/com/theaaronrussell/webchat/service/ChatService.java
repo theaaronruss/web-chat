@@ -62,12 +62,21 @@ public class ChatService {
     String newUsername = event.getContent();
     if (client.getUsername() != null) {
       log.error("User is already logged in");
+      ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null, "Already logged in");
+      sendEvent(sessionId, errorEvent);
     } else if (newUsername.isBlank()) {
       log.error("Username cannot be blank");
+      ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null, "Username cannot be blank");
+      sendEvent(sessionId, errorEvent);
     } else if (newUsername.length() > USERNAME_MAX_LENGTH) {
       log.error("Username cannot be longer than {} characters", USERNAME_MAX_LENGTH);
+      ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null,
+          "Username cannot be longer than " + USERNAME_MAX_LENGTH + " characters");
+      sendEvent(sessionId, errorEvent);
     } else if (!newUsername.matches("^[a-zA-Z0-9]+$")) {
       log.error("Username must only contain alphanumeric characters");
+      ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null, "Username must only contain alphanumeric characters");
+      sendEvent(sessionId, errorEvent);
     } else {
       client.setUsername(event.getContent());
       log.info("User {} has logged in", newUsername);
@@ -88,6 +97,8 @@ public class ChatService {
     String message = event.getContent();
     if (senderUsername == null) {
       log.error("User must log in before sending messages");
+      ChatEvent errorEvent = new ChatEvent(EventName.ERROR, null, "Must be signed in to send messages");
+      sendEvent(sessionId, errorEvent);
       return;
     }
     log.info("{} says \"{}\"", senderUsername, message);
@@ -113,6 +124,24 @@ public class ChatService {
           recipientSession.sendMessage(new TextMessage(eventJson));
         }
       }
+    } catch (JsonProcessingException e) {
+      log.error("Failed to convert outgoing event to JSON");
+    } catch (IOException e) {
+      log.error("Failed to send message event to client");
+    }
+  }
+
+  /**
+   * Send event to one specific client.
+   *
+   * @param recipientSessionId Session ID of the recipient.
+   * @param event              The event to send.
+   */
+  private void sendEvent(String recipientSessionId, ChatEvent event) {
+    ChatClient recipient = clients.get(recipientSessionId);
+    try {
+      String eventJson = objectMapper.writeValueAsString(event);
+      recipient.getSession().sendMessage(new TextMessage(eventJson));
     } catch (JsonProcessingException e) {
       log.error("Failed to convert outgoing event to JSON");
     } catch (IOException e) {
