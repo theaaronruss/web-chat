@@ -1,8 +1,6 @@
-package com.theaaronrussell.webchat.chat;
+package com.theaaronrussell.webchat.dto;
 
 public class ChatEvent {
-
-  public static final String EVENT_MESSAGE = "message";
 
   private String eventName;
   private String content;
