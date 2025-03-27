@@ -70,7 +70,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
       ChatEvent event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
       validateEventMessage(event);
       if (event.getEventName().equalsIgnoreCase(EVENT_MESSAGE)) {
-        chatService.sendMessage(event);
+        chatService.sendMessage(session.getId(), event);
       } else {
         log.error("Unknown event name");
       }

@@ -33,7 +33,13 @@ public class ChatService {
     clients.remove(sessionId);
   }
 
-  public void sendMessage(ChatEvent event) {
+  public void sendMessage(String sessionId, ChatEvent event) {
+    ChatClient client = clients.get(sessionId);
+    if (client.getUsername() == null) {
+      log.error("User must log in before sending messages");
+      return;
+    }
+    log.info("{}: {}", client.getUsername(), event.getContent());
     // TODO: Broadcast message to all clients
   }
 
