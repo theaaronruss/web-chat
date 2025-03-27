@@ -84,10 +84,9 @@ public class ChatService {
       log.error("User must log in before sending messages");
       return;
     }
-    log.info("{}: {}", senderUsername, message);
-    String outgoingMessage = String.format("%s: %s", senderUsername, message);
+    log.info("{} says \"{}\"", senderUsername, message);
     clients.forEach((recipientSessionId, recipient) -> {
-      sendMessage(recipientSessionId, outgoingMessage);
+      sendMessageEvent(recipientSessionId, senderUsername, message);
     });
   }
 
@@ -95,10 +94,11 @@ public class ChatService {
    * Send a message to a connected user.
    *
    * @param recipientSessionId ID of the session associated with the recipient.
+   * @param senderUsername     Username of the user sending the messsage.
    * @param message            Content of the message to send.
    */
-  private void sendMessage(String recipientSessionId, String message) {
-    ChatEvent event = new ChatEvent(EventName.MESSAGE, message);
+  private void sendMessageEvent(String recipientSessionId, String senderUsername, String message) {
+    ChatEvent event = new ChatEvent(EventName.MESSAGE, senderUsername, message);
     ChatClient recipient = clients.get(recipientSessionId);
     try {
       String eventJson = objectMapper.writeValueAsString(event);
