@@ -57,6 +57,12 @@ public class ChatService {
     }
   }
 
+  /**
+   * Send a message to all connected users of the server.
+   *
+   * @param sessionId ID of the session associated with the user sending the message.
+   * @param event     Details of the message being sent.
+   */
   public void sendMessage(String sessionId, ChatEvent event) {
     ChatClient client = clients.get(sessionId);
     if (client.getUsername() == null) {
