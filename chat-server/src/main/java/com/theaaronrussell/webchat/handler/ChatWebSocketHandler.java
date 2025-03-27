@@ -46,7 +46,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
    * Handle client disconnection.
    *
    * @param session The {@code WebSocketSession} associated with the client.
-   * @param status The status code and reason for client disconnection.
+   * @param status  The status code and reason for client disconnection.
    * @throws Exception If any exception occurs.
    */
   @Override
@@ -70,7 +70,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
       ChatEvent event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
       validateEventMessage(event);
       if (event.getEventName().equalsIgnoreCase(EVENT_MESSAGE)) {
-          chatService.sendMessage(event);
+        chatService.sendMessage(event);
+      } else {
+        log.error("Unknown event name");
       }
     } catch (JsonProcessingException e) {
       log.error("Failed to parse incoming message");
