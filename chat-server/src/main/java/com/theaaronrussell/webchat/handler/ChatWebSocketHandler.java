@@ -68,7 +68,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     super.handleTextMessage(session, message);
     try {
       ChatEvent event = objectMapper.readValue(message.getPayload(), ChatEvent.class);
-      validateEventMessage(event);
+      if (event.getEventName() == null) {
+        throw new ValidationException("Event name not provided or is blank");
+      }
       switch (event.getEventName()) {
         case EventName.LOG_IN -> chatService.logIn(session.getId(), event);
         case EventName.MESSAGE -> chatService.sendMessage(session.getId(), event);
@@ -78,19 +80,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
       log.error("Failed to parse incoming message");
     } catch (ValidationException e) {
       log.error("Invalid event: {}", e.getMessage());
-    }
-  }
-
-  /**
-   * Verify that the given event is valid. An event is invalid if the event name is not provided or is blank.
-   *
-   * @param event The event to validate.
-   * @throws ValidationException If event is not a valid event.
-   */
-  private void validateEventMessage(ChatEvent event) throws ValidationException {
-    String eventName = event.getEventName();
-    if (eventName == null || eventName.isBlank()) {
-      throw new ValidationException("Event name not provided or is blank");
     }
   }
 
