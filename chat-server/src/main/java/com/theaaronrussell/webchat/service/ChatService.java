@@ -46,8 +46,10 @@ public class ChatService {
   public void disconnectClient(String sessionId) {
     String disconnectingUsername = clients.get(sessionId).getUsername();
     clients.remove(sessionId);
-    ChatEvent outgoingEvent = new ChatEvent(EventName.DISCONNECT, disconnectingUsername, null);
-    broadcastEvent(outgoingEvent);
+    if (disconnectingUsername != null) {
+      ChatEvent outgoingEvent = new ChatEvent(EventName.DISCONNECT, disconnectingUsername, null);
+      broadcastEvent(outgoingEvent);
+    }
   }
 
   /**
