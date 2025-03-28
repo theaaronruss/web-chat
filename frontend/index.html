@@ -14,20 +14,22 @@
     </header>
     <div id="messages-container">
       <div id="messages-list">
-        <div class="message">
-          <p class="message-content">
-            <span class="message-author">RustyTitan43: </span> Hello, world!
-          </p>
-        </div>
-        <div class="message">
-          <p class="message-content">
-            <span class="message-author">BlueOyster32: </span>Hey, what's up?
-          </p>
-        </div>
+        <template id="message-template">
+          <div class="message">
+            <p class="message-content">
+              <span class="message-author"></span>
+            </p>
+          </div>
+        </template>
+        <template id="status-message-template">
+          <div class="message">
+            <p class="message-content"></p>
+          </div>
+        </template>
       </div>
       <div id="message-controls">
-        <input type="text" placeholder="Type a message" />
-        <button>Send</button>
+        <input id="message-input" type="text" placeholder="Type a message" />
+        <button id="message-send-button">Send</button>
       </div>
     </div>
   </body>
