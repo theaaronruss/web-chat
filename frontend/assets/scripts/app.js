@@ -39,6 +39,14 @@ webSocket.addEventListener('message', (event) => {
   ) {
     document.getElementById('login').remove();
   }
+  if (eventMessage.eventName === 'log_in') {
+    const statusTemplate = document.getElementById('status-message-template');
+    const statusElement = document.importNode(statusTemplate.content, true);
+    statusElement.querySelector(
+      '.message-content'
+    ).textContent = `${eventMessage.user} has connected`;
+    messagesList.append(statusElement);
+  }
 });
 
 function sendLogInEvent(username) {
