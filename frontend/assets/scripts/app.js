@@ -3,6 +3,7 @@ const serverUrl = 'ws://localhost:8080/chat';
 const messagesList = document.getElementById('messages-list');
 const messageInput = document.getElementById('message-input');
 const messageSendButton = document.getElementById('message-send-button');
+const usernameSubmitButton = document.getElementById('username-submit-button');
 const statusMessageTemplate = document.getElementById(
   'status-message-template'
 );
@@ -13,6 +14,9 @@ messageSendButton.addEventListener('click', () => {
   const message = messageInput.value;
   messageInput.value = messageInput.getAttribute('value');
   sendMessage(message);
+});
+usernameSubmitButton.addEventListener('click', () => {
+  document.getElementById('login').remove();
 });
 webSocket.addEventListener('open', () => {
   console.log('WebSocket connected');
