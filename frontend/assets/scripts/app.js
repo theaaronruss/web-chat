@@ -50,7 +50,11 @@ function sendLogInEvent(username) {
 }
 
 function sendMessage(message) {
-  console.log('Sending message:', message);
+  const event = {
+    eventName: 'message',
+    content: message,
+  };
+  webSocket.send(JSON.stringify(event));
 }
 
 function showError(errorMessage) {
