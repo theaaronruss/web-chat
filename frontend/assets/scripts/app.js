@@ -31,12 +31,7 @@ webSocket.addEventListener('message', (event) => {
     if (eventMessage.user === chosenUsername) {
       document.getElementById('login').remove();
     }
-    const statusTemplate = document.getElementById('status-message-template');
-    const statusElement = document.importNode(statusTemplate.content, true);
-    statusElement.querySelector(
-      '.message-content'
-    ).textContent = `${eventMessage.user} has connected`;
-    messagesList.append(statusElement);
+    showStatusMessage(`${eventMessage.user} has connected`);
   } else if (eventMessage.eventName === 'message') {
     const messageTemplate = document.getElementById('message-template');
     const messageElement = document.importNode(messageTemplate.content, true);
@@ -46,6 +41,8 @@ webSocket.addEventListener('message', (event) => {
     messageElement.querySelector('.message-content').innerHTML +=
       eventMessage.content;
     messagesList.append(messageElement);
+  } else if (eventMessage.eventName === 'disconnect') {
+    showStatusMessage(`${eventMessage.user} has disconnected`);
   }
 });
 
@@ -75,4 +72,11 @@ function showError(errorMessage) {
     const errorElement = document.querySelector('.error');
     errorElement.remove();
   }, 3000);
+}
+
+function showStatusMessage(status) {
+  const statusTemplate = document.getElementById('status-message-template');
+  const statusElement = document.importNode(statusTemplate.content, true);
+  statusElement.querySelector('.message-content').textContent = status;
+  messagesList.append(statusElement);
 }
