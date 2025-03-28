@@ -37,6 +37,15 @@ webSocket.addEventListener('message', (event) => {
       '.message-content'
     ).textContent = `${eventMessage.user} has connected`;
     messagesList.append(statusElement);
+  } else if (eventMessage.eventName === 'message') {
+    const messageTemplate = document.getElementById('message-template');
+    const messageElement = document.importNode(messageTemplate.content, true);
+    messageElement.querySelector(
+      '.message-author'
+    ).textContent = `${eventMessage.user}: `;
+    messageElement.querySelector('.message-content').innerHTML +=
+      eventMessage.content;
+    messagesList.append(messageElement);
   }
 });
 
