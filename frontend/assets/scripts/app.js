@@ -20,26 +20,17 @@ usernameSubmitButton.addEventListener('click', () => {
   const username = document.getElementById('username-input').value;
   sendLogInEvent(username);
 });
-webSocket.addEventListener('open', () => {
-  console.log('WebSocket connected');
-});
-webSocket.addEventListener('close', () => {
-  console.log('WebSocket disconnected');
-});
-webSocket.addEventListener('error', (event) => {
-  console.log('WebSocket error:', event);
+webSocket.addEventListener('error', () => {
+  showError('An unexpected error occurred');
 });
 webSocket.addEventListener('message', (event) => {
   const eventMessage = JSON.parse(event.data);
   if (eventMessage.eventName === 'error') {
     showError(eventMessage.content);
-  } else if (
-    eventMessage.eventName === 'log_in' &&
-    eventMessage.user === chosenUsername
-  ) {
-    document.getElementById('login').remove();
-  }
-  if (eventMessage.eventName === 'log_in') {
+  } else if (eventMessage.eventName === 'log_in') {
+    if (eventMessage.user === chosenUsername) {
+      document.getElementById('login').remove();
+    }
     const statusTemplate = document.getElementById('status-message-template');
     const statusElement = document.importNode(statusTemplate.content, true);
     statusElement.querySelector(
