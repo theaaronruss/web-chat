@@ -1,17 +1,18 @@
-package com.theaaronrussell.webchat;
+package com.theaaronrussell.webchat.util;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum EventName {
+public enum EventType {
 
-  LOG_IN("log_in"),
-  DISCONNECT("disconnect"),
+  NAME("name"),
   MESSAGE("message"),
+  JOIN("join"),
+  LEAVE("leave"),
   ERROR("error");
 
   private final String value;
 
-  EventName(String value) {
+  EventType(String value) {
     this.value = value;
   }
 
@@ -20,4 +21,5 @@ public enum EventName {
   public String toString() {
     return value;
   }
+
 }
