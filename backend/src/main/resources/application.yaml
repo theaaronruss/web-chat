@@ -1,2 +1,11 @@
-spring.application.name: webchat
-username.max_length: 15
+spring:
+  application:
+    name: webchat
+logging:
+  level:
+    com.theaaronrussell.webchat: debug
+webSocket:
+  allowedOrigins: '*'
+validation:
+  username:
+    max_length: 15
