@@ -18,9 +18,10 @@ public class ChatService {
   /**
    * Process any incoming events.
    *
-   * @param event The event to be processed.
+   * @param originSessionId The ID of the {@code WebSocketSession} that the event originated from.
+   * @param event           The event to be processed.
    */
-  public void processEvent(Event event) {
+  public void processEvent(String originSessionId, Event event) {
     chatClientManager.broadcastEvent(event);
   }
 

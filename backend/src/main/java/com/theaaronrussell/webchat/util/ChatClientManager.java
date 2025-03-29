@@ -55,6 +55,33 @@ public class ChatClientManager {
   }
 
   /**
+   * Send event to a specific client.
+   *
+   * @param sessionId The ID of the {@code WebSocketSession} associated with the client.
+   * @param event     The event to send.
+   */
+  public void sendEvent(String sessionId, Event event) {
+    ChatClient client = clients.get(sessionId);
+    if (client == null) {
+      log.error("Did not find client with session ID of {} in list of connected clients", sessionId);
+      return;
+    }
+    WebSocketSession session = client.getSession();
+    if (!session.isOpen()) {
+      log.error("Client session with ID of {} is not open, not sending message to that client", sessionId);
+      return;
+    }
+    try {
+      String eventJson = objectMapper.writeValueAsString(event);
+      session.sendMessage(new TextMessage(eventJson));
+    } catch (JsonProcessingException e) {
+      log.error("Failed to serialize event to JSON");
+    } catch (IOException e) {
+      log.error("Failed to send message to client with session ID {}", sessionId);
+    }
+  }
+
+  /**
    * Broadcast event to all connected clients.
    *
    * @param event The event to broadcast.
