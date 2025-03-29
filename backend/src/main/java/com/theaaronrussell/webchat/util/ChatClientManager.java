@@ -14,8 +14,8 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Utility class for keeping track of the connected chat clients. Allows sending events to individual clients as well
- * as broadcasting to all.
+ * Utility class for keeping track of the connected chat clients. Allows sending events to individual clients as well as
+ * broadcasting to all.
  */
 @Component
 public class ChatClientManager {
@@ -41,8 +41,8 @@ public class ChatClientManager {
   }
 
   /**
-   * Remove a client from the list of managed chat clients. This does not close the {@code
-   * WebSocketSession} associated with the client.
+   * Remove a client from the list of managed chat clients. This does not close the {@code WebSocketSession} associated
+   * with the client.
    *
    * @param sessionId ID of the {@code WebSocketSession} associated with the chat client.
    */
@@ -102,6 +102,26 @@ public class ChatClientManager {
         log.error("Failed to broadcast message to client with session ID {}", session.getId());
       }
     });
+  }
+
+  /**
+   * Set the username of a client. Does nothing if the client is not found in the list of connected clients or if the
+   * client is already named.
+   *
+   * @param sessionId ID of the {@code WebSockcetSession} associated with the client.
+   * @param username  The username to use for the client.
+   */
+  public void setUsername(String sessionId, String username) {
+    ChatClient client = clients.get(sessionId);
+    if (client == null) {
+      log.warn("Did not find client with session ID of {} in list of connected clients", sessionId);
+      return;
+    }
+    if (client.getUsername() != null) {
+      log.warn("Client with session ID {} is already named", sessionId);
+      return;
+    }
+    client.setUsername(username);
   }
 
 }
