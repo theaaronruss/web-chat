@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum EventType {
 
-  NAME("name");
+  NAME("name"),
+  MESSAGE("message");
 
   private final String value;
 
