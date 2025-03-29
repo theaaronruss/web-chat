@@ -1,5 +1,6 @@
 package com.theaaronrussell.webchat.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theaaronrussell.webchat.model.ChatClient;
@@ -22,7 +23,8 @@ public class ChatClientManager {
 
   private static final Logger log = LoggerFactory.getLogger(ChatClientManager.class);
   private final ConcurrentHashMap<String, ChatClient> clients = new ConcurrentHashMap<>();
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper()
+      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
   /**
    * Add a chat client to manage. The given username for the client is {@code null}. If the provided
