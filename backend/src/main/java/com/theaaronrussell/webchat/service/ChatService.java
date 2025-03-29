@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.WebSocketSession;
 
 @Service
 public class ChatService {
@@ -18,6 +19,34 @@ public class ChatService {
   @Autowired
   public ChatService(ChatClientManager chatClientManager) {
     this.chatClientManager = chatClientManager;
+  }
+
+  /**
+   * Start keeping track of a newly connected client.
+   *
+   * @param session The {@code WebSocketSession} associated with the client.
+   */
+  public void connectClient(WebSocketSession session) {
+    chatClientManager.addClient(session);
+  }
+
+  /**
+   * Stop keeping track of a now disconnected client.
+   *
+   * @param session The {@code WebSocketSession} associated with the client.
+   */
+  public void disconnectClient(WebSocketSession session) {
+    ChatClient client = chatClientManager.getClient(session.getId());
+    if (client == null) {
+      log.warn("Leave event for client with session ID {} not broadcast as the client could not be found", session.getId());
+      return;
+    }
+    if (client.getUsername() == null) {
+      log.warn("Leave event for client with session ID {} not broadcast as the client never set a username", session.getId());
+      return;
+    }
+    chatClientManager.removeClient(session.getId());
+    broadcastLeaveEvent(client.getUsername());
   }
 
   /**
@@ -70,6 +99,16 @@ public class ChatService {
    */
   private void broadcastJoinEvent(String username) {
     Event outgoingEvent = new Event(EventType.JOIN, username, null);
+    chatClientManager.broadcastEvent(outgoingEvent);
+  }
+
+  /**
+   * Broadcast a leave event to notify connected clients of a client leaving/disconnecting.
+   *
+   * @param username Username of the leaving client.
+   */
+  private void broadcastLeaveEvent(String username) {
+    Event outgoingEvent = new Event(EventType.LEAVE, username, null);
     chatClientManager.broadcastEvent(outgoingEvent);
   }
 

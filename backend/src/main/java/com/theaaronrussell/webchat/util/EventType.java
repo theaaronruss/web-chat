@@ -6,7 +6,8 @@ public enum EventType {
 
   NAME("name"),
   MESSAGE("message"),
-  JOIN("join");
+  JOIN("join"),
+  LEAVE("leave");
 
   private final String value;
 
