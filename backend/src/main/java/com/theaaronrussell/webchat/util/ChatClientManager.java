@@ -76,13 +76,13 @@ public class ChatClientManager {
   public ChatClient getClient(String sessionId) {
     ChatClient client = clients.get(sessionId);
     if (client == null) {
-      log.warn("Client with session ID {} not found in list of connected clients", sessionId);
+      log.debug("Client with session ID {} not found in list of connected clients", sessionId);
     }
     return client;
   }
 
   /**
-   * Send an event to a specific client.
+   * Send an event to a specific client. This method does nothing if the client is not found.
    *
    * @param sessionId The ID of the {@code WebSocketSession} associated with the client.
    * @param event     The event to send.
@@ -90,7 +90,7 @@ public class ChatClientManager {
   public void sendEvent(String sessionId, Event event) {
     ChatClient client;
     if ((client = getClient(sessionId)) == null) {
-      log.warn("Event not sent to client with session ID {} as the client was not found", sessionId);
+      log.debug("Event not sent to client with session ID {} as the client was not found", sessionId);
       return;
     }
     sendEventToSession(client.getSession(), event);
