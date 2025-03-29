@@ -45,11 +45,14 @@ public class ChatClientManager {
 
   /**
    * Remove a client from the list of managed chat clients. This does not close the {@code WebSocketSession} associated
-   * with the client. This method does nothing if the client is not found.
+   * with the client. This method does nothing if the client is not found or if the provided session ID is null.
    *
    * @param sessionId ID of the {@code WebSocketSession} associated with the chat client.
    */
   public void removeClient(String sessionId) {
+    if (sessionId == null) {
+      return;
+    }
     if (clients.remove(sessionId) != null) {
       log.debug("Client with session ID {} removed from client manager", sessionId);
       log.debug("There are now {} connected clients", getNumConnectedClients());
@@ -74,6 +77,9 @@ public class ChatClientManager {
    * @return The requested client.
    */
   public ChatClient getClient(String sessionId) {
+    if (sessionId == null) {
+      return null;
+    }
     ChatClient client = clients.get(sessionId);
     if (client == null) {
       log.debug("Client with session ID {} not found in list of connected clients", sessionId);
