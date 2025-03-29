@@ -84,6 +84,12 @@ public class ChatService {
     } else if (username == null || username.isBlank()) {
       log.info("Username for client with session ID {} not set as the username is not provided or is blank", sessionId);
       sendErrorEvent(sessionId, "You must provide a non-empty username");
+    } else if (username.length() > 15) {
+      log.info("Username for client with session ID {} not set as the username is longer than 15 characters", sessionId);
+      sendErrorEvent(sessionId, "Username cannot be longer than 15 characters");
+    } else if (!username.matches("^[a-zA-Z0-9]+$")) {
+      log.info("Username for client with session ID {} not set as the username contains non-alphanumeric characters", sessionId);
+      sendErrorEvent(sessionId, "Username can only contain alphanumeric characters");
     } else {
       client.setUsername(username);
       log.info("Username for client with session ID {} set to \"{}\"", sessionId, username);
