@@ -55,15 +55,28 @@ public class ChatClientManager {
   }
 
   /**
+   * Retrieve a client from the list of connected clients.
+   *
+   * @param sessionId ID of the {@code WebSocketSession} associated with the client.
+   * @return The request client.
+   */
+  public ChatClient getClient(String sessionId) {
+    ChatClient client = clients.get(sessionId);
+    if (client == null) {
+      log.warn("Client with session ID {} not found in list of connected clients", sessionId);
+    }
+    return client;
+  }
+
+  /**
    * Send event to a specific client.
    *
    * @param sessionId The ID of the {@code WebSocketSession} associated with the client.
    * @param event     The event to send.
    */
   public void sendEvent(String sessionId, Event event) {
-    ChatClient client = clients.get(sessionId);
-    if (client == null) {
-      log.error("Did not find client with session ID of {} in list of connected clients", sessionId);
+    ChatClient client;
+    if ((client = getClient(sessionId)) == null) {
       return;
     }
     WebSocketSession session = client.getSession();
@@ -102,26 +115,6 @@ public class ChatClientManager {
         log.error("Failed to broadcast message to client with session ID {}", session.getId());
       }
     });
-  }
-
-  /**
-   * Set the username of a client. Does nothing if the client is not found in the list of connected clients or if the
-   * client is already named.
-   *
-   * @param sessionId ID of the {@code WebSockcetSession} associated with the client.
-   * @param username  The username to use for the client.
-   */
-  public void setUsername(String sessionId, String username) {
-    ChatClient client = clients.get(sessionId);
-    if (client == null) {
-      log.warn("Did not find client with session ID of {} in list of connected clients", sessionId);
-      return;
-    }
-    if (client.getUsername() != null) {
-      log.warn("Client with session ID {} is already named", sessionId);
-      return;
-    }
-    client.setUsername(username);
   }
 
 }

@@ -1,5 +1,6 @@
 package com.theaaronrussell.webchat.service;
 
+import com.theaaronrussell.webchat.model.ChatClient;
 import com.theaaronrussell.webchat.model.Event;
 import com.theaaronrussell.webchat.util.ChatClientManager;
 import com.theaaronrussell.webchat.util.EventType;
@@ -27,8 +28,32 @@ public class ChatService {
    */
   public void processEvent(String originSessionId, Event event) {
     if (event.getType() == EventType.NAME) {
-      chatClientManager.setUsername(originSessionId, event.getContent());
+      log.debug("Processing event for setting username of client with session ID {}", originSessionId);
+      setUsername(originSessionId, event.getContent());
+    } else {
+      log.warn("Event from client with session ID {} not processed as it has an unknown event type", originSessionId);
     }
+  }
+
+  /**
+   * Set the username of a client. Does nothing if the client is not found in the list of connected clients or if the
+   * client is already named.
+   *
+   * @param sessionId ID of the {@code WebSockcetSession} associated with the client.
+   * @param username  The username to use for the client.
+   */
+  private void setUsername(String sessionId, String username) {
+    ChatClient client = chatClientManager.getClient(sessionId);
+    if (client == null) {
+      log.warn("Username for client with session ID {} not set as it could not be found", sessionId);
+      return;
+    }
+    if (client.getUsername() != null) {
+      log.warn("Username for client with session ID {} not set as it already has a username", sessionId);
+      return;
+    }
+    client.setUsername(username);
+    log.info("Username for client with session ID {} update to {}", sessionId, username);
   }
 
 }
