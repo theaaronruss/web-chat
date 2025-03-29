@@ -81,10 +81,12 @@ public class ChatService {
     ChatClient client = chatClientManager.getClient(sessionId);
     if (client == null) {
       log.warn("Username for client with session ID {} not set as it could not be found", sessionId);
+      sendErrorEvent(sessionId, "An unexpected error prevented your username from being set");
       return;
     }
     if (client.getUsername() != null) {
       log.warn("Username for client with session ID {} not set as it already has a username", sessionId);
+      sendErrorEvent(sessionId, "You cannot update your username after it has been set");
       return;
     }
     client.setUsername(username);
