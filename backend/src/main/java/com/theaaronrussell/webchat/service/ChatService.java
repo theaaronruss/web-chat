@@ -133,14 +133,18 @@ public class ChatService {
     ChatClient senderClient = chatClientManager.getClient(originSessionId);
     if (senderClient == null) {
       log.warn("Message from client with session ID {} not broadcast as the client could not be found", originSessionId);
+      sendErrorEvent(originSessionId, "An unexpected error prevented your message from being sent");
       return;
     }
     if (senderClient.getUsername() == null) {
       log.warn("Message from client with session ID {} not broadcast as the client does not yet have a username", originSessionId);
+      sendErrorEvent(originSessionId, "You must set a username before you can send a message");
       return;
     }
     if (message == null || message.isBlank()) {
       log.warn("Message from client with session ID {} not broadcast as the message is not provided or is blank", originSessionId);
+      sendErrorEvent(originSessionId, "You must provide a non-empty message for it to be sent");
+      return;
     }
     Event outgoingEvent = new Event(EventType.MESSAGE, senderClient.getUsername(), message);
     chatClientManager.broadcastEvent(outgoingEvent);
