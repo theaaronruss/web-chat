@@ -65,8 +65,8 @@ public class ChatService {
         log.debug("Processing event for sending message from client with session ID {}", originSessionId);
         sendMessage(originSessionId, event.getContent());
       }
-      default ->
-          log.warn("Event from client with session ID {} not processed as it has an unknown event type", originSessionId);
+      default -> log.warn("Event from client with session ID {} not processed as it does not have a valid event type",
+          originSessionId);
     }
   }
 
