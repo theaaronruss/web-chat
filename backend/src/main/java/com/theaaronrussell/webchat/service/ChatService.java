@@ -60,6 +60,17 @@ public class ChatService {
     }
     client.setUsername(username);
     log.info("Username for client with session ID {} update to {}", sessionId, username);
+    broadcastJoinEvent(username);
+  }
+
+  /**
+   * Broadcast a join event to notify connected clients of a now named client setting a username.
+   *
+   * @param username Username of the newly named client.
+   */
+  private void broadcastJoinEvent(String username) {
+    Event outgoingEvent = new Event(EventType.JOIN, username, null);
+    chatClientManager.broadcastEvent(outgoingEvent);
   }
 
   /**
