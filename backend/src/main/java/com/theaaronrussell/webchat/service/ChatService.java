@@ -113,6 +113,17 @@ public class ChatService {
   }
 
   /**
+   * Send an error event to a specific client.
+   *
+   * @param sessionId ID of the {@code WebSocketSession} associated with the intended client.
+   * @param message   The error message to be sent.
+   */
+  private void sendErrorEvent(String sessionId, String message) {
+    Event outgoingEvent = new Event(EventType.ERROR, null, message);
+    chatClientManager.sendEvent(sessionId, outgoingEvent);
+  }
+
+  /**
    * Broadcast a message from a client to all other clients.
    *
    * @param originSessionId ID of the {@code WebSocketSession} associated with the client who sent the message.
