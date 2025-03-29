@@ -44,7 +44,7 @@ public class ChatClientManager {
 
   /**
    * Remove a client from the list of managed chat clients. This does not close the {@code WebSocketSession} associated
-   * with the client.
+   * with the client. This method does nothing if the client is not found.
    *
    * @param sessionId ID of the {@code WebSocketSession} associated with the chat client.
    */
@@ -52,15 +52,15 @@ public class ChatClientManager {
     if (clients.remove(sessionId) != null) {
       log.debug("Client with session ID {} removed from client manager", sessionId);
     } else {
-      log.warn("Client with session ID {} not removed from client manager because it was not found", sessionId);
+      log.warn("Client with session ID {} not removed from client manager as it was not found", sessionId);
     }
   }
 
   /**
-   * Retrieve a client from the list of connected clients.
+   * Retrieve a client from the list of connected clients. {@code null} is returned if the client is not found.
    *
    * @param sessionId ID of the {@code WebSocketSession} associated with the client.
-   * @return The request client.
+   * @return The requested client.
    */
   public ChatClient getClient(String sessionId) {
     ChatClient client = clients.get(sessionId);
@@ -71,7 +71,7 @@ public class ChatClientManager {
   }
 
   /**
-   * Send event to a specific client.
+   * Send an event to a specific client.
    *
    * @param sessionId The ID of the {@code WebSocketSession} associated with the client.
    * @param event     The event to send.
@@ -79,21 +79,10 @@ public class ChatClientManager {
   public void sendEvent(String sessionId, Event event) {
     ChatClient client;
     if ((client = getClient(sessionId)) == null) {
+      log.warn("Event not sent to client with session ID {} as the client was not found", sessionId);
       return;
     }
-    WebSocketSession session = client.getSession();
-    if (!session.isOpen()) {
-      log.error("Client session with ID of {} is not open, not sending message to that client", sessionId);
-      return;
-    }
-    try {
-      String eventJson = objectMapper.writeValueAsString(event);
-      session.sendMessage(new TextMessage(eventJson));
-    } catch (JsonProcessingException e) {
-      log.error("Failed to serialize event to JSON");
-    } catch (IOException e) {
-      log.error("Failed to send message to client with session ID {}", sessionId);
-    }
+    sendEventToSession(client.getSession(), event);
   }
 
   /**
@@ -102,21 +91,25 @@ public class ChatClientManager {
    * @param event The event to broadcast.
    */
   public void broadcastEvent(Event event) {
-    clients.values().forEach(client -> {
-      WebSocketSession session = client.getSession();
-      if (!session.isOpen()) {
-        log.warn("Client session with ID of {} is not open, not broadcasting message to that client", session.getId());
-        return;
-      }
-      try {
-        String eventJson = objectMapper.writeValueAsString(event);
-        session.sendMessage(new TextMessage(eventJson));
-      } catch (JsonProcessingException e) {
-        log.error("Failed to serialize event to JSON");
-      } catch (IOException e) {
-        log.error("Failed to broadcast message to client with session ID {}", session.getId());
-      }
-    });
+    clients.values().forEach(client -> sendEventToSession(client.getSession(), event));
+  }
+
+  /**
+   * Send an event through a {@code WebSocketSession}.
+   *
+   * @param session The {@code WebSocketSession} to send the event through.
+   * @param event   The event to send.
+   */
+  private void sendEventToSession(WebSocketSession session, Event event) {
+    try {
+      String eventJson = objectMapper.writeValueAsString(event);
+      session.sendMessage(new TextMessage(eventJson));
+      log.debug("Event of type {} sent to client with session ID of {}", event.getType().toString(), session.getId());
+    } catch (JsonProcessingException e) {
+      log.error("Failed to serialize event to JSON");
+    } catch (IOException e) {
+      log.error("Failed to send message to client with session ID {}", session.getId());
+    }
   }
 
 }
