@@ -44,7 +44,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
   protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
     try {
       Event event = objectMapper.readValue(message.getPayload(), Event.class);
-      log.info("New event from client with session ID {}", session.getId());
+      log.info("New event from client with session ID {} with type \"{}\"", session.getId(), event.getType().toString());
       chatService.processEvent(session.getId(), event);
     } catch (JsonProcessingException e) {
       log.error("Failed to parse incoming WebSocket message");

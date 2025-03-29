@@ -40,6 +40,7 @@ public class ChatClientManager {
     String sessionId = webSocketSession.getId();
     clients.put(sessionId, client);
     log.debug("Client with session ID {} added to client manager", sessionId);
+    log.debug("There are now {} connected clients", getNumConnectedClients());
   }
 
   /**
@@ -51,9 +52,19 @@ public class ChatClientManager {
   public void removeClient(String sessionId) {
     if (clients.remove(sessionId) != null) {
       log.debug("Client with session ID {} removed from client manager", sessionId);
+      log.debug("There are now {} connected clients", getNumConnectedClients());
     } else {
       log.warn("Client with session ID {} not removed from client manager as it was not found", sessionId);
     }
+  }
+
+  /**
+   * Get the number of connected clients.
+   *
+   * @return The number of connected clients.
+   */
+  private int getNumConnectedClients() {
+    return clients.size();
   }
 
   /**
@@ -104,7 +115,7 @@ public class ChatClientManager {
     try {
       String eventJson = objectMapper.writeValueAsString(event);
       session.sendMessage(new TextMessage(eventJson));
-      log.debug("Event of type {} sent to client with session ID of {}", event.getType().toString(), session.getId());
+      log.debug("Event of type \"{}\" sent to client with session ID of {}", event.getType().toString(), session.getId());
     } catch (JsonProcessingException e) {
       log.error("Failed to serialize event to JSON");
     } catch (IOException e) {

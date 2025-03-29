@@ -37,16 +37,12 @@ public class ChatService {
    */
   public void disconnectClient(WebSocketSession session) {
     ChatClient client = chatClientManager.getClient(session.getId());
-    if (client == null) {
-      log.warn("Leave event for client with session ID {} not broadcast as the client could not be found", session.getId());
-      return;
-    }
-    if (client.getUsername() == null) {
-      log.warn("Leave event for client with session ID {} not broadcast as the client never set a username", session.getId());
-      return;
-    }
     chatClientManager.removeClient(session.getId());
-    broadcastLeaveEvent(client.getUsername());
+    if (client == null || client.getUsername() == null) {
+      log.debug("Leave event for client with session ID {} not broadcast as the client never set a username or was not found", session.getId());
+    } else {
+      broadcastLeaveEvent(client.getUsername());
+    }
   }
 
   /**
@@ -65,7 +61,7 @@ public class ChatService {
         log.debug("Processing event for sending message from client with session ID {}", originSessionId);
         sendMessage(originSessionId, event.getContent());
       }
-      default -> log.warn("Event from client with session ID {} not processed as it does not have a valid event type",
+      default -> log.debug("Event from client with session ID {} not processed as it does not have a valid event type",
           originSessionId);
     }
   }
@@ -74,24 +70,25 @@ public class ChatService {
    * Set the username of a client. Does nothing if the client is not found in the list of connected clients or if the
    * client is already named.
    *
-   * @param sessionId ID of the {@code WebSockcetSession} associated with the client.
+   * @param sessionId ID of the {@code WebSocketSession} associated with the client.
    * @param username  The username to use for the client.
    */
   private void setUsername(String sessionId, String username) {
     ChatClient client = chatClientManager.getClient(sessionId);
     if (client == null) {
-      log.warn("Username for client with session ID {} not set as it could not be found", sessionId);
+      log.error("Username for client with session ID {} not set as it could not be found", sessionId);
       sendErrorEvent(sessionId, "An unexpected error prevented your username from being set");
-      return;
-    }
-    if (client.getUsername() != null) {
-      log.warn("Username for client with session ID {} not set as it already has a username", sessionId);
+    } else if (client.getUsername() != null) {
+      log.info("Username for client with session ID {} not set as it already has a username", sessionId);
       sendErrorEvent(sessionId, "You cannot update your username after it has been set");
-      return;
+    } else if (username == null || username.isBlank()) {
+      log.info("Username for client with session ID {} not set as the username is not provided or is blank", sessionId);
+      sendErrorEvent(sessionId, "You must provide a non-empty username");
+    } else {
+      client.setUsername(username);
+      log.info("Username for client with session ID {} set to \"{}\"", sessionId, username);
+      broadcastJoinEvent(username);
     }
-    client.setUsername(username);
-    log.info("Username for client with session ID {} update to {}", sessionId, username);
-    broadcastJoinEvent(username);
   }
 
   /**
@@ -100,6 +97,7 @@ public class ChatService {
    * @param username Username of the newly named client.
    */
   private void broadcastJoinEvent(String username) {
+    log.debug("Broadcasting join event as \"{}\" has joined", username);
     Event outgoingEvent = new Event(EventType.JOIN, username, null);
     chatClientManager.broadcastEvent(outgoingEvent);
   }
@@ -110,6 +108,7 @@ public class ChatService {
    * @param username Username of the leaving client.
    */
   private void broadcastLeaveEvent(String username) {
+    log.debug("Broadcasting leave event as \"{}\" has left", username);
     Event outgoingEvent = new Event(EventType.LEAVE, username, null);
     chatClientManager.broadcastEvent(outgoingEvent);
   }
@@ -121,6 +120,7 @@ public class ChatService {
    * @param message   The error message to be sent.
    */
   private void sendErrorEvent(String sessionId, String message) {
+    log.debug("Sending error event to client with session ID {} with the message \"{}\"", sessionId, message);
     Event outgoingEvent = new Event(EventType.ERROR, null, message);
     chatClientManager.sendEvent(sessionId, outgoingEvent);
   }
@@ -136,20 +136,17 @@ public class ChatService {
     if (senderClient == null) {
       log.warn("Message from client with session ID {} not broadcast as the client could not be found", originSessionId);
       sendErrorEvent(originSessionId, "An unexpected error prevented your message from being sent");
-      return;
-    }
-    if (senderClient.getUsername() == null) {
-      log.warn("Message from client with session ID {} not broadcast as the client does not yet have a username", originSessionId);
+    } else if (senderClient.getUsername() == null) {
+      log.info("Message from client with session ID {} not broadcast as the client does not yet have a username", originSessionId);
       sendErrorEvent(originSessionId, "You must set a username before you can send a message");
-      return;
-    }
-    if (message == null || message.isBlank()) {
-      log.warn("Message from client with session ID {} not broadcast as the message is not provided or is blank", originSessionId);
+    } else if (message == null || message.isBlank()) {
+      log.info("Message from client with session ID {} not broadcast as the message is not provided or is blank", originSessionId);
       sendErrorEvent(originSessionId, "You must provide a non-empty message for it to be sent");
-      return;
+    } else {
+      Event outgoingEvent = new Event(EventType.MESSAGE, senderClient.getUsername(), message);
+      chatClientManager.broadcastEvent(outgoingEvent);
+      log.info("{} says \"{}\"", senderClient.getUsername(), message);
     }
-    Event outgoingEvent = new Event(EventType.MESSAGE, senderClient.getUsername(), message);
-    chatClientManager.broadcastEvent(outgoingEvent);
   }
 
 }
