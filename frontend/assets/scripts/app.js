@@ -17,7 +17,18 @@ document.getElementById('username-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const usernameInput = document.getElementById('username-input');
   chosenUsername = usernameInput.value;
-  sendUsername(usernameInput.value);
+  sendUsername(chosenUsername);
+});
+
+document.getElementById('message-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const messageInput = document.getElementById('message-input');
+  const messageContent = messageInput.value;
+  const outgoingEvent = {
+    type: 'message',
+    content: messageContent,
+  };
+  webSocket.send(JSON.stringify(outgoingEvent));
 });
 
 function sendUsername(username) {
