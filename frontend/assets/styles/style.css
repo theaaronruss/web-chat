@@ -1,0 +1,53 @@
+body {
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6, p, a {
+  margin: 0;
+  padding: 0;
+}
+
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#message-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 16px;
+}
+
+.message {
+  background-color: #0097E6;
+  border-radius: 16px;
+  margin-left: 12px;
+  margin-bottom: 16px;
+  max-width: 34%;
+  min-width: 10%;
+  padding: 12px 16px;
+  width: fit-content;
+}
+
+.message:first-child {
+  margin-top: auto;
+}
+
+.message-author {
+  color: #DCDDE1;
+}
+
+.message-content {
+  color: #F5F6FA;
+}
+
+#message-form {
+  display: flex;
+}
+
+#message-form input {
+  flex: 1;
+}
