@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web Chat</title>
     <link rel="stylesheet" href="assets/styles/style.css" />
+    <script src="assets/scripts/app.js" defer></script>
   </head>
   <body>
     <main>
       <div id="username-background">
         <div id="username-form-container">
-          <form id="username-form" action="javascript:void(0);">
+          <form id="username-form">
             <p id="">Get Started</p>
             <input
               type="text"
@@ -22,17 +23,18 @@
         </div>
       </div>
       <div id="chat-container">
-        <div id="message-list">
-          <div class="message">
-            <p class="message-author">JohnDoe43</p>
-            <p class="message-content">Hello, how are you?</p>
-          </div>
-        </div>
+        <div id="message-list"></div>
         <form id="message-form" action="javascript:void(0);">
           <input type="text" placeholder="Type a message..." />
           <button type="submit">Send</button>
         </form>
       </div>
     </main>
+    <template id="message-template">
+      <div class="message">
+        <p class="message-author"></p>
+        <p class="message-content"></p>
+      </div>
+    </template>
   </body>
 </html>
