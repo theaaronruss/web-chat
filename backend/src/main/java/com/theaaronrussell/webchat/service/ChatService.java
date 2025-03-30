@@ -90,6 +90,9 @@ public class ChatService {
     } else if (!username.matches("^[a-zA-Z0-9]+$")) {
       log.info("Username for client with session ID {} not set as the username contains non-alphanumeric characters", sessionId);
       sendErrorEvent(sessionId, "Username can only contain alphanumeric characters");
+    } else if (chatClientManager.isUsernameTaken(username)) {
+      log.info("Username for client with session ID {} not set as the username is already taken", sessionId);
+      sendErrorEvent(sessionId, "Username is already taken");
     } else {
       client.setUsername(username);
       log.info("Username for client with session ID {} set to \"{}\"", sessionId, username);

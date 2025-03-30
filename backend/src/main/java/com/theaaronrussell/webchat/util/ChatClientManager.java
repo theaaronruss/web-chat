@@ -71,6 +71,16 @@ public class ChatClientManager {
   }
 
   /**
+   * Check if any connected client is using a username.
+   *
+   * @param username The username to check for.
+   * @return True if a connected client is using the username, false otherwise.
+   */
+  public boolean isUsernameTaken(String username) {
+    return clients.values().stream().anyMatch(chatClient -> username.equals(chatClient.getUsername()));
+  }
+
+  /**
    * Retrieve a client from the list of connected clients. {@code null} is returned if the client is not found.
    *
    * @param sessionId ID of the {@code WebSocketSession} associated with the client.
