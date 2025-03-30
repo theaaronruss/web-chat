@@ -11,6 +11,8 @@ webSocket.addEventListener('message', (event) => {
     showJoinMessage(chosenUsername);
   } else if (eventData.type === 'join') {
     showJoinMessage(eventData.username);
+  } else if (eventData.type === 'leave') {
+    showLeaveMessage(eventData.username);
   }
 });
 
@@ -59,5 +61,13 @@ function showJoinMessage(username) {
   joinMessageElement.className = 'join-message';
   joinMessageElement.textContent = `${username} has joined the chat`;
   messageList.appendChild(joinMessageElement);
+  messageList.querySelector('.join-message:last-child').scrollIntoView();
+}
+
+function showLeaveMessage(username) {
+  const leaveMessageElement = document.createElement('p');
+  leaveMessageElement.className = 'join-message';
+  leaveMessageElement.textContent = `${username} has left the chat`;
+  messageList.appendChild(leaveMessageElement);
   messageList.querySelector('.join-message:last-child').scrollIntoView();
 }
