@@ -8,10 +8,14 @@ webSocket.addEventListener('message', (event) => {
     eventData.username === chosenUsername
   ) {
     document.getElementById('username-form-background').remove();
+    showJoinMessage(chosenUsername);
+  } else if (eventData.type === 'join') {
+    showJoinMessage(eventData.username);
   }
 });
 
 let chosenUsername;
+const messageList = document.getElementById('message-list');
 
 document.getElementById('username-form').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -46,7 +50,14 @@ function addMessageToMessageList(messageEvent) {
     messageEvent.username;
   messageElement.querySelector('.message-content').textContent =
     messageEvent.content;
-  const messageList = document.getElementById('message-list');
   messageList.appendChild(messageElement);
   messageList.querySelector('.message:last-child').scrollIntoView();
+}
+
+function showJoinMessage(username) {
+  const joinMessageElement = document.createElement('p');
+  joinMessageElement.className = 'join-message';
+  joinMessageElement.textContent = `${username} has joined the chat`;
+  messageList.appendChild(joinMessageElement);
+  messageList.querySelector('.join-message:last-child').scrollIntoView();
 }
