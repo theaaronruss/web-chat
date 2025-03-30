@@ -1,32 +1,41 @@
 const webSocket = new WebSocket('ws://localhost:8080/chat');
-webSocket.addEventListener('open', function (event) {
-  console.log('WebSocket connection established');
-});
-webSocket.addEventListener('close', function (event) {
-  console.log('WebSocket connection closed');
-});
-webSocket.addEventListener('error', function (event) {
-  console.error('WebSocket error:', event);
-});
-webSocket.addEventListener('message', function (event) {
+webSocket.addEventListener('message', (event) => {
   const eventData = JSON.parse(event.data);
   if (eventData.type === 'message') {
-    const messageElement = document.importNode(
-      document.getElementById('message-template').content,
-      true
-    );
-    messageElement.querySelector('.message-author').textContent =
-      eventData.username;
-    messageElement.querySelector('.message-content').textContent =
-      eventData.content;
-    document.getElementById('message-list').appendChild(messageElement);
-    document.querySelector('.message:last-child').scrollIntoView();
+    addMessageToMessageList(eventData);
+  } else if (
+    eventData.type === 'join' &&
+    eventData.username === chosenUsername
+  ) {
+    document.getElementById('username-form-background').remove();
   }
 });
 
-document
-  .getElementById('username-form')
-  .addEventListener('submit', function (event) {
-    event.preventDefault();
-    document.getElementById('username-background').remove();
-  });
+let chosenUsername;
+
+document.getElementById('username-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const usernameInput = document.getElementById('username-input');
+  chosenUsername = usernameInput.value;
+  sendUsername(usernameInput.value);
+});
+
+function sendUsername(username) {
+  const outgoingEvent = {
+    type: 'name',
+    content: username,
+  };
+  webSocket.send(JSON.stringify(outgoingEvent));
+}
+
+function addMessageToMessageList(messageEvent) {
+  const messageTemplate = document.getElementById('message-template');
+  const messageElement = document.importNode(messageTemplate.content, true);
+  messageElement.querySelector('.message-author').textContent =
+    messageEvent.username;
+  messageElement.querySelector('.message-content').textContent =
+    messageEvent.content;
+  const messageList = document.getElementById('message-list');
+  messageList.appendChild(messageElement);
+  messageList.querySelector('.message:last-child').scrollIntoView();
+}
