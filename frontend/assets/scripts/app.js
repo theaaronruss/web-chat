@@ -35,6 +35,7 @@ document.getElementById('message-form').addEventListener('submit', (event) => {
     content: messageContent,
   };
   webSocket.send(JSON.stringify(outgoingEvent));
+  messageInput.value = messageInput.getAttribute('value');
 });
 
 function sendUsername(username) {
@@ -46,14 +47,21 @@ function sendUsername(username) {
 }
 
 function addMessageToMessageList(messageEvent) {
+  let className;
+  if (messageEvent.username === chosenUsername) {
+    className = 'outgoing-message';
+  } else {
+    className = 'incoming-message';
+  }
   const messageTemplate = document.getElementById('message-template');
   const messageElement = document.importNode(messageTemplate.content, true);
+  messageElement.querySelector('div').className = className;
   messageElement.querySelector('.message-author').textContent =
     messageEvent.username;
   messageElement.querySelector('.message-content').textContent =
     messageEvent.content;
-  messageList.appendChild(messageElement);
-  messageList.querySelector('.message:last-child').scrollIntoView();
+  messageList.append(messageElement);
+  messageList.querySelector(className).scrollIntoView();
 }
 
 function showJoinMessage(username) {
