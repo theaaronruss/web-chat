@@ -14,6 +14,8 @@ import org.springframework.web.socket.WebSocketSession;
 public class ChatService {
 
   private static final Logger log = LoggerFactory.getLogger(ChatService.class);
+  private static final int MAX_USERNAME_LENGTH = 15;
+  private static final String USERNAME_REGEX = "^[a-zA-Z0-9]+$";
   private final ChatClientManager chatClientManager;
 
   @Autowired
@@ -46,12 +48,15 @@ public class ChatService {
   }
 
   /**
-   * Process any incoming events.
+   * Process any incoming events. This method does nothing if {@code event} is {@code null} or if an invalid event type is provided.
    *
    * @param originSessionId The ID of the {@code WebSocketSession} that the event originated from.
    * @param event           The event to be processed.
    */
   public void processEvent(String originSessionId, Event event) {
+    if (event == null) {
+      return;
+    }
     switch (event.getType()) {
       case EventType.NAME -> {
         log.debug("Processing event for setting username of client with session ID {}", originSessionId);
@@ -84,12 +89,15 @@ public class ChatService {
     } else if (username == null || username.isBlank()) {
       log.info("Username for client with session ID {} not set as the username is not provided or is blank", sessionId);
       sendErrorEvent(sessionId, "You must provide a non-empty username");
-    } else if (username.length() > 15) {
+    } else if (username.length() > MAX_USERNAME_LENGTH) {
       log.info("Username for client with session ID {} not set as the username is longer than 15 characters", sessionId);
       sendErrorEvent(sessionId, "Username cannot be longer than 15 characters");
-    } else if (!username.matches("^[a-zA-Z0-9]+$")) {
+    } else if (!username.matches(USERNAME_REGEX)) {
       log.info("Username for client with session ID {} not set as the username contains non-alphanumeric characters", sessionId);
       sendErrorEvent(sessionId, "Username can only contain alphanumeric characters");
+    } else if (chatClientManager.isUsernameTaken(username)) {
+      log.info("Username for client with session ID {} not set as the username is already taken", sessionId);
+      sendErrorEvent(sessionId, "Username is already taken");
     } else {
       client.setUsername(username);
       log.info("Username for client with session ID {} set to \"{}\"", sessionId, username);

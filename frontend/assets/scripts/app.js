@@ -1,82 +1,105 @@
-const serverUrl = 'ws://localhost:8080/chat';
-
-const messagesList = document.getElementById('messages-list');
-const messageInput = document.getElementById('message-input');
-const messageSendButton = document.getElementById('message-send-button');
-const usernameSubmitButton = document.getElementById('username-submit-button');
-const statusMessageTemplate = document.getElementById(
-  'status-message-template'
-);
-const messageTemplate = document.getElementById('message-template');
-const webSocket = new WebSocket(serverUrl);
-let chosenUsername = '';
-
-messageSendButton.addEventListener('click', () => {
-  const message = messageInput.value;
-  messageInput.value = messageInput.getAttribute('value');
-  sendMessage(message);
-});
-usernameSubmitButton.addEventListener('click', () => {
-  const username = document.getElementById('username-input').value;
-  sendLogInEvent(username);
-});
-webSocket.addEventListener('error', () => {
-  showError('An unexpected error occurred');
-});
+const webSocket = new WebSocket('ws://localhost:8080/chat');
 webSocket.addEventListener('message', (event) => {
-  const eventMessage = JSON.parse(event.data);
-  if (eventMessage.eventName === 'error') {
-    showError(eventMessage.content);
-  } else if (eventMessage.eventName === 'log_in') {
-    if (eventMessage.user === chosenUsername) {
-      document.getElementById('login').remove();
-    }
-    showStatusMessage(`${eventMessage.user} has connected`);
-  } else if (eventMessage.eventName === 'message') {
-    const messageTemplate = document.getElementById('message-template');
-    const messageElement = document.importNode(messageTemplate.content, true);
-    messageElement.querySelector(
-      '.message-author'
-    ).textContent = `${eventMessage.user}: `;
-    messageElement.querySelector('.message-content').innerHTML +=
-      eventMessage.content;
-    messagesList.append(messageElement);
-  } else if (eventMessage.eventName === 'disconnect') {
-    showStatusMessage(`${eventMessage.user} has disconnected`);
+  const eventData = JSON.parse(event.data);
+  if (eventData.type === 'message') {
+    addMessageToMessageList(eventData);
+  } else if (
+    eventData.type === 'join' &&
+    eventData.username === chosenUsername
+  ) {
+    document.getElementById('username-form-background').remove();
+    showJoinMessage(chosenUsername);
+  } else if (eventData.type === 'join') {
+    showJoinMessage(eventData.username);
+  } else if (eventData.type === 'leave') {
+    showLeaveMessage(eventData.username);
+  } else if (eventData.type === 'error') {
+    showErrorPopup(eventData.content);
   }
 });
+webSocket.addEventListener('close', () => {
+  showErrorPopup('Unable to connect to server');
+});
 
-function sendLogInEvent(username) {
-  chosenUsername = username;
-  const event = {
-    eventName: 'log_in',
+let chosenUsername;
+const messageList = document.getElementById('message-list');
+
+document.getElementById('username-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const usernameInput = document.getElementById('username-input');
+  chosenUsername = usernameInput.value;
+  sendUsername(chosenUsername);
+});
+
+document.getElementById('message-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const messageInput = document.getElementById('message-input');
+  const messageContent = messageInput.value;
+  const outgoingEvent = {
+    type: 'message',
+    content: messageContent,
+  };
+  if (webSocket.readyState !== WebSocket.OPEN) {
+    showErrorPopup('Unable to connect to server');
+    return;
+  }
+  webSocket.send(JSON.stringify(outgoingEvent));
+  messageInput.value = messageInput.getAttribute('value');
+});
+
+function sendUsername(username) {
+  const outgoingEvent = {
+    type: 'name',
     content: username,
   };
-  webSocket.send(JSON.stringify(event));
+  if (webSocket.readyState !== WebSocket.OPEN) {
+    showErrorPopup('Unable to connect to server');
+    return;
+  }
+  webSocket.send(JSON.stringify(outgoingEvent));
 }
 
-function sendMessage(message) {
-  const event = {
-    eventName: 'message',
-    content: message,
-  };
-  webSocket.send(JSON.stringify(event));
+function addMessageToMessageList(messageEvent) {
+  let className;
+  if (messageEvent.username === chosenUsername) {
+    className = 'outgoing-message';
+  } else {
+    className = 'incoming-message';
+  }
+  const messageTemplate = document.getElementById('message-template');
+  const messageElement = document.importNode(messageTemplate.content, true);
+  messageElement.querySelector('div').className = className;
+  messageElement.querySelector('.message-author').textContent =
+    messageEvent.username;
+  messageElement.querySelector('.message-content').textContent =
+    messageEvent.content;
+  messageList.append(messageElement);
+  messageList.querySelector(className).scrollIntoView();
 }
 
-function showError(errorMessage) {
+function showJoinMessage(username) {
+  const joinMessageElement = document.createElement('p');
+  joinMessageElement.className = 'join-message';
+  joinMessageElement.textContent = `${username} has joined the chat`;
+  messageList.appendChild(joinMessageElement);
+  messageList.querySelector('.join-message:last-child').scrollIntoView();
+}
+
+function showLeaveMessage(username) {
+  const leaveMessageElement = document.createElement('p');
+  leaveMessageElement.className = 'join-message';
+  leaveMessageElement.textContent = `${username} has left the chat`;
+  messageList.appendChild(leaveMessageElement);
+  messageList.querySelector('.join-message:last-child').scrollIntoView();
+}
+
+function showErrorPopup(errorMessage) {
   const errorTemplate = document.getElementById('error-template');
   const errorElement = document.importNode(errorTemplate.content, true);
-  errorElement.querySelector('p').textContent = errorMessage;
+  errorElement.querySelector('.error-message').textContent = errorMessage;
+  const errorRootElement = errorElement.querySelector('div');
   document.body.appendChild(errorElement);
   setTimeout(() => {
-    const errorElement = document.querySelector('.error');
-    errorElement.remove();
+    errorRootElement.remove();
   }, 3000);
-}
-
-function showStatusMessage(status) {
-  const statusTemplate = document.getElementById('status-message-template');
-  const statusElement = document.importNode(statusTemplate.content, true);
-  statusElement.querySelector('.message-content').textContent = status;
-  messagesList.append(statusElement);
 }
