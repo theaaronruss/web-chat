@@ -116,3 +116,14 @@ h1, h2, h3, h4, h5, h6, p, a {
 #message-form input {
   flex: 1;
 }
+
+.error-popup {
+  background-color: #E74C3C;
+  color: #FFFFFF;
+  border-radius: 8px;
+  padding: 24px 32px;
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translate(-50%, 0);
+}

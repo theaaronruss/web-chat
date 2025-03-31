@@ -13,7 +13,12 @@ webSocket.addEventListener('message', (event) => {
     showJoinMessage(eventData.username);
   } else if (eventData.type === 'leave') {
     showLeaveMessage(eventData.username);
+  } else if (eventData.type === 'error') {
+    showErrorPopup(eventData.content);
   }
+});
+webSocket.addEventListener('close', () => {
+  showErrorPopup('Unable to connect to server');
 });
 
 let chosenUsername;
@@ -34,6 +39,10 @@ document.getElementById('message-form').addEventListener('submit', (event) => {
     type: 'message',
     content: messageContent,
   };
+  if (webSocket.readyState !== WebSocket.OPEN) {
+    showErrorPopup('Unable to connect to server');
+    return;
+  }
   webSocket.send(JSON.stringify(outgoingEvent));
   messageInput.value = messageInput.getAttribute('value');
 });
@@ -43,6 +52,10 @@ function sendUsername(username) {
     type: 'name',
     content: username,
   };
+  if (webSocket.readyState !== WebSocket.OPEN) {
+    showErrorPopup('Unable to connect to server');
+    return;
+  }
   webSocket.send(JSON.stringify(outgoingEvent));
 }
 
@@ -78,4 +91,15 @@ function showLeaveMessage(username) {
   leaveMessageElement.textContent = `${username} has left the chat`;
   messageList.appendChild(leaveMessageElement);
   messageList.querySelector('.join-message:last-child').scrollIntoView();
+}
+
+function showErrorPopup(errorMessage) {
+  const errorTemplate = document.getElementById('error-template');
+  const errorElement = document.importNode(errorTemplate.content, true);
+  errorElement.querySelector('.error-message').textContent = errorMessage;
+  const errorRootElement = errorElement.querySelector('div');
+  document.body.appendChild(errorElement);
+  setTimeout(() => {
+    errorRootElement.remove();
+  }, 3000);
 }
